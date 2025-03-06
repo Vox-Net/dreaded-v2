@@ -3,7 +3,7 @@
 
 <div align="center">
 
-| [![KANAMBO](https://avatars.githubusercontent.com/u/106575586?v=4)](https://github.com/Kanambp)|
+| [![KANAMBO](https://avatars.githubusercontent.com/u/106575586?v=4)](https://github.com/Kanambp)
 |----|
 
 
