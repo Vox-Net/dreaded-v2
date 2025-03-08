@@ -110,7 +110,7 @@ async function initializeGroupSettings(jid) {
     }
 }
 
-async function getGroupSettings(jid) {
+async function getGroupSetting(jid) {
     console.log(`[DB] Fetching all settings for group: ${jid}`);
     try {
         const res = await pool.query(`
@@ -173,7 +173,7 @@ async function getSettings() {
             settings[row.key] = row.value === 'true' ? true : row.value === 'false' ? false : row.value;
         });
 
-        console.log('[DB] Current settings:', settings);
+    
         return settings;
     } catch (error) {
         console.error('[DB] Error fetching settings:', error);
