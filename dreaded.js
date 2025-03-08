@@ -22,14 +22,24 @@ const antitaggc = require('./Functions/antitag');
 const masterEval = require('./Functions/masterEval');
 const antidel = require('./Functions/antidelete');
 
+const { getSettings } = require('./config');
+
 const {
     presence, autoread, botname,
-    mode, prefix, mycode, author, packname,
+    mode, mycode, author, packname,
     dev, gcpresence, antionce, antitag, antidelete
 } = require('./settings');
 
 module.exports = dreaded = async (client, m, chatUpdate, store) => {
-    try {
+
+try {
+
+let settings = await getSettings();
+        if (!settings) return;
+
+        const { prefix } = settings;
+
+    
         var body =
             m.mtype === "conversation"
                 ? m.message.conversation
