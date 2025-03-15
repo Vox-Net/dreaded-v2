@@ -13,18 +13,20 @@ module.exports = async (context) => {
         const urlYt = videos[0].url;
 
         try {
-            let data = await fetchJson(`https://api.dreaded.site/api/ytdl/audio?url=${urlYt}`);
+            let data = await fetchJson(`https://fastrestapis.fasturl.cloud/downup/ytmp3?url=${encodeURIComponent(urlYt)}&quality=128kbps`);
 
-            const { title, format, url: audioUrl } = data.result;
+            if (!data || !data.url) {
+                return m.reply("Download failed: No valid audio URL found.");
+            }
 
-            await m.reply(`_Downloading ${title}_`);
+            await m.reply(`_Downloading ${videos[0].title}_`);
 
             await client.sendMessage(
                 m.chat,
                 {
-                    document: { url: audioUrl },
+                    document: { url: data.url },
                     mimetype: "audio/mpeg",
-                    fileName: `${title}.mp3`,
+                    fileName: `${videos[0].title}.mp3`,
                 },
                 { quoted: m }
             );
