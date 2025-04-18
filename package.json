@@ -23,13 +23,13 @@
   "license": "MIT",
   "dependencies": {
          
-  "@whiskeysockets/baileys": "git+https://github.com/Fortunatusmokaya/baileys.git",
+  "@whiskeysockets/baileys": "latest",
 
     
     "@adiwajshing/keyed-db": "^0.2.4",
     "@distube/ytdl-core": "^4.15.1",
     "@hapi/boom": "^10.0.0",
-
+    "bing-translate-api": "^4.0.2",
     "@shineiichijo/marika": "^3.0.0",
 "@google/generative-ai":"^0.1.3",
       "canvacord": "^5.4.9",

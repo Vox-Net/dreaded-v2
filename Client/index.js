@@ -109,32 +109,26 @@ if (autobio){
 const processedCalls = new Set();
 
 client.ws.on('CB:call', async (json) => {
+    const settingszs = await getSettings();
+    if (!settingszs?.anticall) return;
+
     const callId = json.content[0].attrs['call-id'];
-    const callerJid = json.content[0].attrs['call-creator']; 
-    const callerNumber = callerJid.replace(/[@.a-z]/g, ""); 
+    const callerJid = json.content[0].attrs['call-creator'];
+    const callerNumber = callerJid.replace(/[@.a-z]/g, "");
 
     if (processedCalls.has(callId)) {
         return;
     }
     processedCalls.add(callId);
 
-  
-  
-    if (!anticall) return; 
-
     try {
-      
         await client.rejectCall(callId, callerJid);
-        await client.sendMessage(callerJid, { text: "You will be banned for calling." });
+        await client.sendMessage(callerJid, { text: "You will be banned for calling. Contact the owner!" });
 
-       
         const bannedUsers = await getBannedUsers();
-        if (bannedUsers.includes(callerNumber)) {
-            return;
+        if (!bannedUsers.includes(callerNumber)) {
+            await banUser(callerNumber);
         }
-
-        
-        await banUser(callerNumber);
     } catch (error) {
         console.error('Error handling call:', error);
     }
@@ -155,35 +149,28 @@ client.ev.on("messages.upsert", async (chatUpdate) => {
 
         const messageContent = mek.message.conversation || mek.message.extendedTextMessage?.text || "";
         const isGroup = mek.key.remoteJid.endsWith("@g.us");
-        const sender = mek.key.participant;
+        const sender = mek.key.participant || mek.key.remoteJid;
+        const Myself = await client.decodeJid(client.user.id);
 
         if (isGroup) {
             const antilink = await getGroupSetting(mek.key.remoteJid, "antilink");
 
-            if (antilink && messageContent.includes("https")) {
+            
+            if ((antilink === true || antilink === 'true') && messageContent.includes("https") && sender !== Myself) {
                 const groupMetadata = await client.groupMetadata(mek.key.remoteJid);
                 const groupAdmins = groupMetadata.participants.filter(p => p.admin).map(p => p.id);
                 const isAdmin = groupAdmins.includes(sender);
-
-const Myself = await client.decodeJid(client.user.id);
                 const isBotAdmin = groupAdmins.includes(Myself);
 
                 if (!isBotAdmin) return;
-
                 if (!isAdmin) {
-
-await client.sendMessage(mek.key.remoteJid, {
+                    await client.sendMessage(mek.key.remoteJid, {
                         text: `🚫 @${sender.split("@")[0]}, sending links is prohibited! You have been removed.`,
                         contextInfo: { mentionedJid: [sender] }
                     }, { quoted: mek });
 
-
-                  
                     await client.groupParticipantsUpdate(mek.key.remoteJid, [sender], "remove");
 
-                   
-                    
-                  
                     await client.sendMessage(mek.key.remoteJid, {
                         delete: {
                             remoteJid: mek.key.remoteJid,
@@ -197,21 +184,23 @@ await client.sendMessage(mek.key.remoteJid, {
             }
         }
 
+        // autolike for statuses
         if (autolike && mek.key.remoteJid === "status@broadcast") {
-            const mokayas = await client.decodeJid(client.user.id);
             if (!mek.status) {
                 await client.sendMessage(mek.key.remoteJid, {
                     react: { key: mek.key, text: reactEmoji }
-                }, { statusJidList: [mek.key.participant, mokayas] });
+                });
             }
         }
 
+        // autoview/ autoread
         if (autoview && mek.key.remoteJid === "status@broadcast") {
             await client.readMessages([mek.key]);
         } else if (autoread && mek.key.remoteJid.endsWith('@s.whatsapp.net')) {
             await client.readMessages([mek.key]);
         }
 
+        // presence
         if (mek.key.remoteJid.endsWith('@s.whatsapp.net')) {
             const Chat = mek.key.remoteJid;
             if (presence === 'online') {
@@ -225,6 +214,7 @@ await client.sendMessage(mek.key.remoteJid, {
             }
         }
 
+        // handle commands
         if (!client.public && !mek.key.fromMe && chatUpdate.type === "notify") return;
 
         m = smsg(client, mek, store);
